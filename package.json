@@ -27,11 +27,12 @@
         "@types/koa": "^2.13.5",
         "@types/koa-router": "^7.4.4",
         "@types/tunnel": "^0.0.3",
+        "googleapis": "^120.0.0",
         "koa": "^2.14.1",
         "koa-bodyparser": "^4.4.0",
         "koa-router": "^12.0.0",
         "mongodb": "^5.1.0",
-        "openai": "^3.2.1",
+        "openai": "^3.3.0",
         "tunnel": "^0.0.6"
     }
 }

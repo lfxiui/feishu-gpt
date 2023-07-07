@@ -1,12 +1,29 @@
 import { config } from './config'
 import { Collection, Document, MongoClient } from 'mongodb'
+import { ChatCompletionRequestMessageFunctionCall } from 'openai'
+import { GptMsg } from './types'
+import { customsearch_v1 } from 'googleapis'
 
 export interface ChatHistory extends Document {
     user: any
     createTime: number
-    send: string
+    send: string | GptMsg[]
     answer?: string
+    function_call?: ChatCompletionRequestMessageFunctionCall
 }
+
+interface SearchResultBase extends Document {
+    query: string
+    createTime: number
+    user: any
+}
+
+export interface GoogleSearchResult extends SearchResultBase {
+    type: 'Google'
+    result: customsearch_v1.Schema$Result[]
+}
+
+export type SearchResult = GoogleSearchResult
 
 /*方便类型转换的类，没有实际使用*/
 class CollContainer<T> {
@@ -14,6 +31,7 @@ class CollContainer<T> {
 
 const allColl = {
     chat_history: new CollContainer<ChatHistory>(),
+    searchResult: new CollContainer<SearchResult>(),
 } as const
 
 type CollName = keyof typeof allColl
@@ -41,13 +59,24 @@ export async function initMongo() {
         let collFromMongo = collectionsFromMongo.find(coll => coll.collectionName === name)
         if (!collFromMongo) {
             collFromMongo = await mongodb.createCollection(name)
+            await initMongoIndex(name)
         }
         collections[name] = collFromMongo as any
     }))
     return mongoClient
 }
 
-export async function initMongoIndex() {
+async function initMongoIndex(collName: CollName): Promise<void> {
+    switch (collName) {
+        case 'chat_history':
+            await initChatHisIndex()
+            return
+        default:
+            return
+    }
+}
+
+export async function initChatHisIndex() {
     const res = await (collections.chat_history as any as Collection)
         .createIndex({
             user: 1,

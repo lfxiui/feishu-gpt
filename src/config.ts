@@ -10,5 +10,9 @@ export const config = {
         url: '',
         name: ''
     },
+    google: {
+        searchId: '',
+        apiKey: '',
+    },
     proxy: undefined,
 }
